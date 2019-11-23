@@ -11,6 +11,16 @@ DELETED_FILES=`git diff HEAD --name-status --no-renames | awk '$1 == "D" {print 
 
 DEVICE_FILES=`ampy --port $PORT ls | sed -e 's/^\///g'`
 
+for arg in "$@"
+do
+  case $arg in
+    -a | --all)
+      CHANGED_FILES=*
+      shift
+  esac
+done
+
+
 # Remove old files
 
 for file in $DELETED_FILES
