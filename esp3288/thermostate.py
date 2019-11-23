@@ -13,6 +13,10 @@ class Thermostate():
 
         self.loop_delay = loop_delay
 
+        self.state = {
+            "dateSetted": False
+        }
+
         # Modules
 
         self.net = Net()
@@ -26,9 +30,19 @@ class Thermostate():
         self.net.connect()
 
     def set_time(self):
+
+        if self.state["dateSetted"]:
+            return
+
         if self.net.connected:
-            self.logger.info("Setting local date")
-            ntptime.settime()
+            try:
+                self.logger.info("Setting local date")
+                ntptime.settime()
+                self.state["dateSetted"] = True
+                self.logger.info("Date setted")
+            except OSError:
+                self.logger.error(
+                    "Can't to set local time. Network is not connected")
         else:
             self.logger.error(
                 "Can't to set local time. Network is not connected")
@@ -42,6 +56,9 @@ class Thermostate():
         self.led.value(0)
 
     def start(self):
-        while True:
-            self.works()
-            sleep(self.loop_delay)
+        try:
+            while True:
+                self.works()
+                sleep(self.loop_delay)
+        except KeyboardInterrupt:
+            self.net.disconnect()

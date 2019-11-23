@@ -41,12 +41,11 @@ class Net:
         ssid = WIFI_SSID if ssid is None else ssid
         password = WIFI_PASS if password is None else password
 
-        self.logger.info("Trying to connect to {ssid}".format(ssid=ssid))
-
         if self.wlan.isconnected():
             self.ssid = ssid
-            self.logger.info("Connected with {ssid}".format(ssid=ssid))
             return self.wlan.isconnected(), self.status()
+
+        self.logger.info("Trying to connect with {ssid}".format(ssid=ssid))
 
         self.wlan.active(True)
         self.ap.active(False)
@@ -57,7 +56,7 @@ class Net:
             time.sleep(1)
 
         if not self.wlan.isconnected():
-            self.logger.error("Can't to connect to {ssid}: {problem}".format(
+            self.logger.error("Can't to connect with {ssid}: {problem}".format(
                 ssid=ssid,
                 problem=self.status()
             ))
