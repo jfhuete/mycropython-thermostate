@@ -20,6 +20,9 @@ do
   esac
 done
 
+# Create directories
+ampy --port $PORT mkdir sensors || true
+
 
 # Remove old files
 
@@ -42,5 +45,5 @@ do
         continue;
     fi
     echo "UPLOAD: " $file
-    ampy --port $PORT --baud $BAUD put $file
+    ampy --port $PORT --baud $BAUD put $file $file
 done
