@@ -20,7 +20,7 @@ class Thermostate():
         # Modules
 
         self.net = Net()
-        self.logger = Logger()
+        self.logger = Logger("LOOP")
 
         # Pins
 

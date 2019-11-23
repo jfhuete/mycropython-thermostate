@@ -23,7 +23,7 @@ class Net:
 
         self.ssid = None
 
-        self.logger = Logger()
+        self.logger = Logger("NET")
 
     def status(self):
         return self.STATUS[self.wlan.status()]

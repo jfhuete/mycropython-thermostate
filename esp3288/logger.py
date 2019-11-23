@@ -3,8 +3,9 @@ import utime as time
 
 class Logger:
 
-    def __init__(self):
-        self.msg_format = "{date} - THERMOSTATE - [{level}] - {msg}"
+    def __init__(self, module):
+        self.module = module
+        self.msg_format = "{date} - THERMOSTATE:{module} - [{level}] - {msg}"
 
     def date_string(self):
         (y, m, d, h, M, s, _, _) = time.localtime()
@@ -21,6 +22,7 @@ class Logger:
     def get_msg(self, msg, level):
         return self.msg_format.format(
             date=self.date_string(),
+            module=self.module,
             level=level,
             msg=msg
         )
