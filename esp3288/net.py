@@ -1,5 +1,8 @@
 import network
 import time
+
+from logger import Logger
+
 from config import WIFI_SSID, WIFI_PASS
 
 
@@ -18,6 +21,10 @@ class Net:
         self.wlan = network.WLAN(network.STA_IF)
         self.ap = network.WLAN(network.AP_IF)
 
+        self.ssid = None
+
+        self.logger = Logger()
+
     def status(self):
         return self.STATUS[self.wlan.status()]
 
@@ -31,18 +38,40 @@ class Net:
         :return: return tuple with boolean is connected and integer status
         """
 
+        ssid = WIFI_SSID if ssid is None else ssid
+        password = WIFI_PASS if password is None else password
+
+        self.logger.info("Trying to connect to {ssid}".format(ssid=ssid))
+
         if self.wlan.isconnected():
+            self.ssid = ssid
+            self.logger.info("Connected with {ssid}".format(ssid=ssid))
             return self.wlan.isconnected(), self.status()
 
         self.wlan.active(True)
         self.ap.active(False)
 
-        ssid = WIFI_SSID if ssid is None else ssid
-        password = WIFI_PASS if password is None else password
-
         self.wlan.connect(ssid, password)
 
-        while self.wlan.status() < self.wlan.STAT_CONNECTING:
+        while self.wlan.status() <= network.STAT_CONNECTING:
             time.sleep(1)
 
+        if not self.wlan.isconnected():
+            self.logger.error("Can't to connect to {ssid}: {problem}".format(
+                ssid=ssid,
+                problem=self.status()
+            ))
+        else:
+            self.logger.info("Connected with {ssid}".format(ssid=ssid))
+            self.ssid = ssid
+
         return self.wlan.isconnected(), self.status()
+
+    def disconnect(self):
+        if self.wlan.isconnected():
+            self.wlan.disconnect()
+            self.logger.info("Disconnected of {ssid}".format(ssid=self.ssid))
+
+    @property
+    def connected(self):
+        return self.wlan.isconnected()
