@@ -6,25 +6,32 @@ from time import sleep
 from logger import Logger
 from net import Net
 
+from sensors.temperature import Temperature
+
 
 class Thermostate():
+
+    # Pins In
+    PIN_TEMP_SENSOR = Pin(4, Pin.IN)
+
+    # Pins Out
+    PIN_ENABLE_BOILER = Pin(2, Pin.OUT)
 
     def __init__(self, loop_delay=1):
 
         self.loop_delay = loop_delay
 
         self.state = {
-            "dateSetted": False
+            "dateSetted": False,
+            "temp": None
         }
 
         # Modules
-
         self.net = Net()
         self.logger = Logger("LOOP")
 
-        # Pins
-
-        self.led = Pin(2, Pin.OUT)
+        # Sensors
+        self.temp_sensor = Temperature(self.PIN_TEMP_SENSOR)
 
     def connect_wifi(self):
         self.net.connect()
@@ -47,13 +54,18 @@ class Thermostate():
             self.logger.error(
                 "Can't to set local time. Network is not connected")
 
+    def read_temp_humidity(self):
+        self.state.update(self.temp_sensor.measure())
+
     def works(self):
         self.connect_wifi()
         self.set_time()
 
-        self.led.value(1)
+        self.read_temp_humidity()
+
+        self.PIN_ENABLE_BOILER.value(1)
         sleep(2)
-        self.led.value(0)
+        self.PIN_ENABLE_BOILER.value(0)
 
     def start(self):
         try:

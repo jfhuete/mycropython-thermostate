@@ -1,21 +1,25 @@
 import dht
-import machine
 
 from logger import Logger
 
+
 class Temperature:
 
-    def __init__(self, pin=4):
-        self.sensor = dht.DHT22(machine.Pin(pin))
+    def __init__(self, pin):
+        self.sensor = dht.DHT22(pin)
         self.logger = Logger("TEMP")
 
     def measure(self):
-        self.sensor.measure()
+        try:
+            self.sensor.measure()
 
-        temp = self.sensor.temperature()
-        humidity = self.sensor.humidity()
-
-        self.logger.info("Temp: {} ºC, Humid: {}".format(temp, humidity))
+            temp = self.sensor.temperature()
+            humidity = self.sensor.humidity()
+            self.logger.info("Temp: {} ºC, Humid: {}%".format(temp, humidity))
+        except OSError:
+            temp = None
+            humidity = None
+            self.logger.error("Can't to read temperature")
 
         return {
             "temp": temp,
