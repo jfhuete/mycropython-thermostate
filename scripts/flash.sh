@@ -72,3 +72,8 @@ do
     echo "UPLOAD: " $file
     ampy --port $PORT --baud $BAUD put ./src/$file $file
 done
+
+# Upload config
+
+ampy --port /dev/ttyUSB0 --baud 115200 rmdir config
+ampy --port $PORT --baud $BAUD put src/config config
