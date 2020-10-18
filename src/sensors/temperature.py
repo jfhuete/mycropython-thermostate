@@ -16,10 +16,10 @@ class Temperature:
             temp = self.sensor.temperature()
             humidity = self.sensor.humidity()
             self.logger.info("Temp: {} ºC, Humid: {}%".format(temp, humidity))
-        except OSError:
+        except OSError as e:
             temp = None
             humidity = None
-            self.logger.error("Can't to read temperature")
+            self.logger.error("Can't to read temperature {}".format(e))
 
         return {
             "temp": temp,
