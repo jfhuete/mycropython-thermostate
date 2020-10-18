@@ -1,2 +1,8 @@
+# Config
+src/config/config.py
+
+# Virtual environment
+.venv
+
+# IDES
 .vscode
-esp3288/config.py
