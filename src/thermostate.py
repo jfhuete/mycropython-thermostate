@@ -1,4 +1,4 @@
-from machine import Pin, RTC
+from machine import RTC
 import ntptime
 
 from time import sleep
@@ -15,9 +15,6 @@ class Thermostate():
     # Loop delay in seconds
     LOOP_DEALY = 1
 
-    # Pins In
-    PIN_TEMP_SENSOR = Pin(4, Pin.IN)
-
     def __init__(self):
 
         self.loop_delay = self.LOOP_DEALY
@@ -28,7 +25,7 @@ class Thermostate():
         self.logger = Logger(self.state, "LOOP")
 
         # Sensors
-        self.temp_sensor = Temperature(self.state, self.PIN_TEMP_SENSOR)
+        self.temp_sensor = Temperature(self.state)
 
         # Initialized
         self.connect_wifi

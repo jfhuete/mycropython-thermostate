@@ -1,34 +1,41 @@
-from machine import Pin
+from machine import Pin, RTC
 
 
 class State:
 
     # Pins Out
     PIN_LED_WIFI = Pin(2, Pin.OUT)
-    PIN_ENABLE_BOILER = None
+    PIN_LED_BOILER = Pin(5, Pin.OUT)
+
+    DAY_MODE = True
+    NIGHT_MODE = False
+
+    HYSTERESIS = 0.7
 
     def __init__(self):
 
         # Thermostate configuration
 
-        self.date = None
+        self.date = RTC().datetime()
 
         self.temperature_setted = {
-            "day": None,
-            "night": None
+            self.DAY_MODE: 24,
+            self.NIGHT_MODE: 17
         }
 
         self.summer = True
 
-        self.time_on = {
-            "monday": [],
-            "tuesday": [],
-            "wednesday": [],
-            "thursday": [],
-            "friday": [],
-            "saturday": [],
-            "sunday": []
+        self.day_mode_program = {
+            0: [((0, 0), (23, 59))],  # Mon
+            1: [((0, 0), (23, 59))],  # Tus
+            2: [((0, 0), (23, 59))],  # Wen
+            3: [((0, 0), (23, 59))],  # Thu
+            4: [((0, 0), (23, 59))],  # Fri
+            5: [((0, 0), (23, 59))],  # Sat
+            6: [((0, 0), (23, 59))]   # Sun
         }
+
+        self.mode = self.DAY_MODE
 
         self.force_on = False
 
@@ -57,10 +64,51 @@ class State:
 
     def __update_state(self):
         self.__update_wifi_led()
+        self.__update_mode()
         self.__update_boiler_on()
 
     def __update_wifi_led(self):
         self.PIN_LED_WIFI.value(not self.wifi_connected)
 
+    def __update_mode(self):
+
+        if self.date is None:
+            return
+
+        weekday = self.date[3]
+        now_hour = self.date[4]
+        now_min = self.date[5]
+        day_mode_intervals = self.day_mode_program[weekday]
+
+        for interval in day_mode_intervals:
+
+            hour_init = interval[0][0]
+            min_init = interval[0][1]
+
+            hour_finish = interval[1][0]
+            min_finish = interval[1][1]
+
+            now_major_init = now_hour > hour_init and now_min > min_init
+            now_minor_finish = now_hour < hour_finish and now_min < min_finish
+
+            if now_major_init and now_minor_finish:
+                self.mode = self.DAY_MODE
+                return
+
+        self.mode = self.NIGHT_MODE
+
     def __update_boiler_on(self):
-        pass
+
+        initial_conditions = [
+            self.temperature_measured is not None,
+            self.date is not None
+        ]
+
+        if not all(initial_conditions):
+            return
+
+        conditions = [
+            self.temperature_measured + self.HYSTERESIS < self.temperature_setted[self.mode]
+        ]
+
+        self.PIN_LED_BOILER.value(all(conditions))
