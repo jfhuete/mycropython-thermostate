@@ -5,9 +5,10 @@ from logger import Logger
 
 class Temperature:
 
-    def __init__(self, pin):
+    def __init__(self, state, pin):
+        self.state = state
         self.sensor = dht.DHT22(pin)
-        self.logger = Logger("TEMP")
+        self.logger = Logger(self.state, "TEMP")
 
     def measure(self):
         try:
@@ -21,7 +22,5 @@ class Temperature:
             humidity = None
             self.logger.error("Can't to read temperature {}".format(e))
 
-        return {
-            "temp": temp,
-            "humidity": humidity
-        }
+        self.state.temperature_measured = temp
+        self.state.humidity_measured = humidity

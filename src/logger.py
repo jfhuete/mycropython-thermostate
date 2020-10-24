@@ -3,7 +3,8 @@ import utime as time
 
 class Logger:
 
-    def __init__(self, module):
+    def __init__(self, state, module):
+        self.state = state
         self.module = module
         self.msg_format = "{date} - THERMOSTATE:{module} - [{level}] - {msg}"
 

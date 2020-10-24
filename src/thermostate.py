@@ -1,8 +1,9 @@
-from machine import Pin
+from machine import Pin, RTC
 import ntptime
 
 from time import sleep
 
+from state import State
 from logger import Logger
 from net import Net
 
@@ -11,66 +12,74 @@ from sensors.temperature import Temperature
 
 class Thermostate():
 
+    # Loop delay in seconds
+    LOOP_DEALY = 1
+
     # Pins In
     PIN_TEMP_SENSOR = Pin(4, Pin.IN)
 
-    # Pins Out
-    PIN_ENABLE_BOILER = Pin(2, Pin.OUT)
+    def __init__(self):
 
-    def __init__(self, loop_delay=1):
-
-        self.loop_delay = loop_delay
-
-        self.state = {
-            "dateSetted": False,
-            "temp": None
-        }
+        self.loop_delay = self.LOOP_DEALY
 
         # Modules
-        self.net = Net()
-        self.logger = Logger("LOOP")
+        self.state = State()
+        self.net = Net(self.state)
+        self.logger = Logger(self.state, "LOOP")
 
         # Sensors
-        self.temp_sensor = Temperature(self.PIN_TEMP_SENSOR)
+        self.temp_sensor = Temperature(self.state, self.PIN_TEMP_SENSOR)
+
+        # Initialized
+        self.connect_wifi
+        self.set_time()
+
+    # Configuration methods
 
     def connect_wifi(self):
-        self.net.connect()
+        if not self.net.connected:
+            self.net.connect()
 
     def set_time(self):
 
-        if self.state["dateSetted"]:
+        # Sync date if date is None or each hour in first 5 seconds
+
+        date_sync = self.state.date is None or \
+            (self.state.date[5] == 0 and self.state.date[6] < 5)
+
+        if not date_sync:
+            self.state.date = RTC().datetime()
             return
 
         if self.net.connected:
             try:
                 self.logger.info("Setting local date")
                 ntptime.settime()
-                self.state["dateSetted"] = True
-                self.logger.info("Date setted")
-            except OSError:
+                self.state.date = RTC().datetime()
+                self.logger.info("Date setted: {}".format(self.state.date))
+            except OSError as error:
                 self.logger.error(
-                    "Can't to set local time. Network is not connected")
+                    "Can't to set local time. {}".format(error))
         else:
             self.logger.error(
                 "Can't to set local time. Network is not connected")
 
-    def read_temp_humidity(self):
-        self.state.update(self.temp_sensor.measure())
+    # Update state
 
-    def works(self):
+    def update_state(self):
         self.connect_wifi()
         self.set_time()
 
-        self.read_temp_humidity()
+        # Read sensors
 
-        self.PIN_ENABLE_BOILER.value(1)
-        sleep(2)
-        self.PIN_ENABLE_BOILER.value(0)
+        self.temp_sensor.measure()
+
+    # Loop method
 
     def start(self):
         try:
             while True:
-                self.works()
+                self.update_state()
                 sleep(self.loop_delay)
         except KeyboardInterrupt:
             self.net.disconnect()
