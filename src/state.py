@@ -60,7 +60,6 @@ class State:
         self.__update_boiler_on()
 
     def __update_wifi_led(self):
-        # value = 0 if  else 1
         self.PIN_LED_WIFI.value(not self.wifi_connected)
 
     def __update_boiler_on(self):
