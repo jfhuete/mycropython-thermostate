@@ -1,11 +1,10 @@
-from machine import Pin, RTC
+from machine import RTC
+from config.pins import PIN_LED_WIFI, PIN_LED_BOILER
 
 
 class State:
 
     # Pins Out
-    PIN_LED_WIFI = Pin(2, Pin.OUT)
-    PIN_LED_BOILER = Pin(5, Pin.OUT)
 
     DAY_MODE = True
     NIGHT_MODE = False
@@ -19,7 +18,7 @@ class State:
         self.date = RTC().datetime()
 
         self.temperature_setted = {
-            self.DAY_MODE: 24,
+            self.DAY_MODE: 21,
             self.NIGHT_MODE: 17
         }
 
@@ -68,7 +67,7 @@ class State:
         self.__update_boiler_on()
 
     def __update_wifi_led(self):
-        self.PIN_LED_WIFI.value(not self.wifi_connected)
+        PIN_LED_WIFI.value(not self.wifi_connected)
 
     def __update_mode(self):
 
@@ -108,7 +107,7 @@ class State:
             return
 
         conditions = [
-            self.temperature_measured + self.HYSTERESIS < self.temperature_setted[self.mode]
+            self.temperature_measured < self.temperature_setted[self.mode] + self.HYSTERESIS
         ]
 
-        self.PIN_LED_BOILER.value(all(conditions))
+        PIN_LED_BOILER.value(all(conditions))
