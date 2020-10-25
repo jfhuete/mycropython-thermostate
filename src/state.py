@@ -9,7 +9,7 @@ class State:
     DAY_MODE = True
     NIGHT_MODE = False
 
-    HYSTERESIS = 0.7
+    HYSTERESIS = 1
 
     def __init__(self):
 
@@ -46,6 +46,10 @@ class State:
         self.temperature_measured = None
         self.humidity_measured = None
         self.on_button = False
+
+        # Thermostate Actuators
+
+        self.__boiler_on = False
 
     @property
     def wifi_connected(self):
@@ -98,16 +102,29 @@ class State:
 
     def __update_boiler_on(self):
 
-        initial_conditions = [
+        requisites = [
             self.temperature_measured is not None,
             self.date is not None
         ]
 
-        if not all(initial_conditions):
+        if not all(requisites):
             return
 
+        # Update boiler on
+
+        temp_minor_of_setted = self.temperature_measured < \
+            self.temperature_setted[self.mode]
+
+        temp_minor_of_setted_hyst = self.temperature_measured < \
+            self.temperature_setted[self.mode] + self.HYSTERESIS
+
+        temp_condition = (not self.__boiler_on and temp_minor_of_setted) or \
+            (self.__boiler_on and temp_minor_of_setted_hyst)
+
         conditions = [
-            self.temperature_measured < self.temperature_setted[self.mode] + self.HYSTERESIS
+            temp_condition
         ]
 
-        PIN_LED_BOILER.value(all(conditions))
+        self.__boiler_on = any(conditions)
+
+        PIN_LED_BOILER.value(self.__boiler_on)
