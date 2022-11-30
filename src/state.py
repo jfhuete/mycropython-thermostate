@@ -1,5 +1,6 @@
 from machine import RTC
 from config.pins import PIN_LED_WIFI, PIN_LED_BOILER
+from logger import Logger
 
 
 class State:
@@ -9,16 +10,18 @@ class State:
     DAY_MODE = True
     NIGHT_MODE = False
 
-    HYSTERESIS = 1
+    HYSTERESIS = 0.3
 
     def __init__(self):
+
+        self.logger = Logger(self, "STATE")
 
         # Thermostate configuration
 
         self.date = RTC().datetime()
 
         self.temperature_setted = {
-            self.DAY_MODE: 21,
+            self.DAY_MODE: 23.1,
             self.NIGHT_MODE: 17
         }
 
@@ -115,14 +118,29 @@ class State:
         temp_minor_of_setted = self.temperature_measured < \
             self.temperature_setted[self.mode]
 
+        self.logger.debug(
+            "temp_minor_of_setted {}".format(temp_minor_of_setted))
+
         temp_minor_of_setted_hyst = self.temperature_measured < \
             self.temperature_setted[self.mode] + self.HYSTERESIS
+
+        self.logger.debug(
+            "temp_minor_of_setted_hyst {}".format(temp_minor_of_setted_hyst))
 
         temp_condition = (not self.__boiler_on and temp_minor_of_setted) or \
             (self.__boiler_on and temp_minor_of_setted_hyst)
 
+        self.logger.debug(
+            "temp_condition {}".format(temp_condition))
+
+        on_button_condition = self.on_button
+
+        self.logger.debug(
+            "on_button_condition {}".format(on_button_condition))
+
         conditions = [
-            temp_condition
+            temp_condition,
+            on_button_condition
         ]
 
         self.__boiler_on = any(conditions)

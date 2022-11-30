@@ -5,6 +5,8 @@ from config.pins import PIN_TEMP_SENSOR
 
 class Temperature:
 
+    MEASSURES_LEN = 50
+
     def __init__(self, state):
         self.state = state
         self.sensor = dht.DHT22(PIN_TEMP_SENSOR)
@@ -40,10 +42,10 @@ class Temperature:
         self.__temp_meassures.append(temp)
         self.__humidity_meassures.append(humidity)
 
-        if len(self.__temp_meassures) > 50:
+        if len(self.__temp_meassures) > self.MEASSURES_LEN:
             self.__temp_meassures.pop(0)
 
-        if len(self.__humidity_meassures) > 50:
+        if len(self.__humidity_meassures) > self.MEASSURES_LEN:
             self.__humidity_meassures.pop(0)
 
     def __get_temperature(self):

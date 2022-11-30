@@ -8,6 +8,7 @@ from logger import Logger
 from net import Net
 
 from sensors.temperature import Temperature
+from sensors.on_off_button import onOffButton
 
 
 class Thermostate():
@@ -26,6 +27,7 @@ class Thermostate():
 
         # Sensors
         self.temp_sensor = Temperature(self.state)
+        self.on_off_button = onOffButton(self.state)
 
         # Initialized
         self.connect_wifi

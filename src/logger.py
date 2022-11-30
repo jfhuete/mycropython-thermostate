@@ -1,7 +1,13 @@
 import utime as time
+from config import LOGGER_LEVEL
 
 
 class Logger:
+
+    DEBUG = 0
+    INFO = 1
+    WARNING = 2
+    ERROR = 3
 
     def __init__(self, state, module):
         self.state = state
@@ -32,17 +38,21 @@ class Logger:
         print(msg)
 
     def info(self, raw_msg):
-        msg = self.get_msg(raw_msg, "INFO")
-        self.process(msg)
+        if LOGGER_LEVEL <= self.INFO:
+            msg = self.get_msg(raw_msg, "INFO")
+            self.process(msg)
 
     def warning(self, raw_msg):
-        msg = self.get_msg(raw_msg, "WARNING")
-        self.process(msg)
+        if LOGGER_LEVEL <= self.WARNING:
+            msg = self.get_msg(raw_msg, "WARNING")
+            self.process(msg)
 
     def error(self, raw_msg):
-        msg = self.get_msg(raw_msg, "ERROR")
-        self.process(msg)
+        if LOGGER_LEVEL <= self.ERROR:
+            msg = self.get_msg(raw_msg, "ERROR")
+            self.process(msg)
 
     def debug(self, raw_msg):
-        msg = self.get_msg(raw_msg, "ERROR")
-        self.process(msg)
+        if LOGGER_LEVEL <= self.DEBUG:
+            msg = self.get_msg(raw_msg, "DEBUG")
+            self.process(msg)

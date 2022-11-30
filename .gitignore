@@ -1,5 +1,5 @@
 # Config
-src/config/config.py
+src/config/private_config.py
 
 # Virtual environment
 .venv
